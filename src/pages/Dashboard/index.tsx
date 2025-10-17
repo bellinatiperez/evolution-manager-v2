@@ -1,5 +1,5 @@
 import { ChevronsUpDown, CircleUser, Cog, MessageCircle, RefreshCw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -27,8 +27,11 @@ function Dashboard() {
   const { deleteInstance, logout } = useManageInstance();
   const { data: instances, refetch } = useFetchInstances();
   const [deleting, setDeleting] = useState<string[]>([]);
-  const [searchStatus, setSearchStatus] = useState("all");
+  const [searchStatus, setSearchStatus] = useState("open");
   const [nameSearch, setNameSearch] = useState("");
+  const [filteredInstances, setFilteredInstances] = useState<Instance[]>([]);
+
+  console.log(instances, searchStatus);
 
   const resetTable = async () => {
     await refetch();
@@ -55,7 +58,11 @@ function Dashboard() {
     }
   };
 
-  const filteredInstances = useMemo(() => {
+  useEffect(() => {
+    handleFilterInstances();
+  }, [instances, nameSearch, searchStatus]);
+
+  const handleFilterInstances = () => {
     let instancesList = instances ? [...instances] : [];
     if (searchStatus !== "all") {
       instancesList = instancesList.filter((instance) => instance.connectionStatus === searchStatus);
@@ -65,8 +72,8 @@ function Dashboard() {
       instancesList = instancesList.filter((instance) => instance.name.toLowerCase().includes(nameSearch.toLowerCase()));
     }
 
-    return instancesList;
-  }, [instances, nameSearch, searchStatus]);
+    setFilteredInstances(instancesList);
+  };
 
   const instanceStatus = [
     { value: "all", label: t("status.all") },
@@ -79,6 +86,14 @@ function Dashboard() {
     <div className="my-4 px-4">
       <div className="flex w-full items-center justify-between">
         <h2 className="text-lg">{t("dashboard.title")}</h2>
+
+        <ul>
+          <li className="flex items-center gap-2">
+            <Link to="/manager/instance-groups" className="flex items-center gap-2">
+              Grupos de Instâncias
+            </Link>
+          </li>
+        </ul>
         <div className="flex gap-2">
           <Button variant="outline" size="icon">
             <RefreshCw onClick={resetTable} size="20" />
@@ -114,8 +129,7 @@ function Dashboard() {
       </div>
       <main className="grid gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredInstances.length > 0 &&
-          Array.isArray(instances) &&
-          instances.map((instance: Instance) => (
+          filteredInstances.map((instance: Instance) => (
             <Card key={instance.id}>
               <CardHeader>
                 <Link to={`/manager/instance/${instance.id}/dashboard`} className="flex w-full flex-row items-center justify-between gap-4">

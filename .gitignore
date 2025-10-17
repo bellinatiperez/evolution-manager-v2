@@ -150,3 +150,4 @@ build/
 # Temporary files
 tmp/
 temp/
+.cursor/

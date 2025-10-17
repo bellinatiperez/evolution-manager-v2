@@ -15,6 +15,7 @@ import { EmbedChat } from "@/pages/instance/EmbedChat";
 import { Evoai } from "@/pages/instance/Evoai";
 import { EvolutionBot } from "@/pages/instance/EvolutionBot";
 import { Flowise } from "@/pages/instance/Flowise";
+import { InstanceGroups } from "@/pages/InstanceGroups";
 import { N8n } from "@/pages/instance/N8n";
 import { Openai } from "@/pages/instance/Openai";
 import { Proxy } from "@/pages/instance/Proxy";
@@ -41,6 +42,16 @@ const router = createBrowserRouter([
       <ProtectedRoute>
         <MainLayout>
           <Dashboard />
+        </MainLayout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/manager/instance-groups",
+    element: (
+      <ProtectedRoute>
+        <MainLayout>
+          <InstanceGroups />
         </MainLayout>
       </ProtectedRoute>
     ),

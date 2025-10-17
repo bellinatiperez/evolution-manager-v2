@@ -469,3 +469,55 @@ export type FlowiseSettings = {
   splitMessages?: boolean;
   timePerChar?: number;
 };
+
+// Instance Groups Types
+export type InstanceGroup = {
+  id: string;
+  name: string;
+  alias: string;
+  description?: string;
+  enabled: boolean;
+  instances: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateInstanceGroup = {
+  name: string;
+  alias: string;
+  description?: string;
+  enabled?: boolean;
+  instances: string[];
+};
+
+export type UpdateInstanceGroup = {
+  name?: string;
+  alias?: string;
+  description?: string;
+  enabled?: boolean;
+  instances?: string[];
+};
+
+export type AddInstanceToGroup = {
+  instanceName: string;
+};
+
+export type RemoveInstanceFromGroup = {
+  instanceName: string;
+};
+
+export type SendTextWithGroupBalancing = {
+  alias: string;
+  number: string;
+  text: string;
+  delay?: number;
+  quoted?: {
+    key: {
+      remoteJid: string;
+      fromMe: boolean;
+      id: string;
+    };
+  };
+  mentionsEveryOne?: boolean;
+  mentioned?: string[];
+};
