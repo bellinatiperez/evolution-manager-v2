@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,8 +12,10 @@ import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { InstanceStatus } from "@/components/instance-status";
 
 import { useUpdateInstanceGroup } from "@/lib/queries/instance-groups/manageInstanceGroups";
+import { useFetchInstances } from "@/lib/queries/instance/fetchInstances";
 import { getToken, TOKEN_ID } from "@/lib/queries/token";
 
 import { InstanceGroup } from "@/types/evolution.types";
@@ -40,6 +42,12 @@ export function EditInstanceGroupDialog({ group, open, onOpenChange, onSuccess }
   const token = getToken(TOKEN_ID.TOKEN);
   
   const { mutate: updateGroup, isPending } = useUpdateInstanceGroup();
+  const { data: allInstances = [] } = useFetchInstances();
+
+  // Create a memoized map for O(1) instance lookup
+  const instancesMap = useMemo(() => {
+    return new Map(allInstances.map(instance => [instance.name, instance]));
+  }, [allInstances]);
 
   const form = useForm<EditInstanceGroupForm>({
     resolver: zodResolver(editInstanceGroupSchema),
@@ -53,6 +61,33 @@ export function EditInstanceGroupDialog({ group, open, onOpenChange, onSuccess }
   });
 
   const instances = form.watch("instances");
+
+  // Memoized function to get instance status by name with O(1) lookup
+  const getInstanceStatus = useCallback((instanceName: string) => {
+    const instance = instancesMap.get(instanceName);
+    return instance?.connectionStatus || "unknown";
+  }, [instancesMap]);
+
+  // Memoized rendered instances list to prevent unnecessary re-renders
+  const renderedInstances = useMemo(() => {
+    return instances.map((instance) => (
+      <Badge key={instance} variant="secondary" className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          <span>{instance}</span>
+          <InstanceStatus status={getInstanceStatus(instance)} />
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+          onClick={() => removeInstance(instance)}
+        >
+          <X size="12" />
+        </Button>
+      </Badge>
+    ));
+  }, [instances, getInstanceStatus]);
 
   // Reset form when group changes
   useEffect(() => {
@@ -230,20 +265,7 @@ export function EditInstanceGroupDialog({ group, open, onOpenChange, onSuccess }
                     
                     {instances.length > 0 && (
                       <div className="flex flex-wrap gap-2">
-                        {instances.map((instance) => (
-                          <Badge key={instance} variant="secondary" className="flex items-center gap-1">
-                            {instance}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                              onClick={() => removeInstance(instance)}
-                            >
-                              <X size="12" />
-                            </Button>
-                          </Badge>
-                        ))}
+                        {renderedInstances}
                       </div>
                     )}
                   </div>

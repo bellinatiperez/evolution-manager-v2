@@ -16,5 +16,10 @@ export const useFetchInstances = (props?: UseQueryParams<FetchInstancesResponse>
     ...props,
     queryKey,
     queryFn: () => fetchInstances(),
+    staleTime: 5 * 1000, // 5 seconds - balance between performance and accuracy
+    gcTime: 2 * 60 * 1000, // 2 minutes - shorter cache for fresher data
+    refetchOnWindowFocus: true, // Refetch when window regains focus for accuracy
+    refetchOnMount: true, // Always refetch on mount for latest data
+    refetchInterval: 15 * 1000, // Auto-refetch every 15 seconds for real-time updates
   });
 };
